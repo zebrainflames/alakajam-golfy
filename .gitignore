@@ -1,0 +1,9 @@
+# ignore all default DragonRuby temp assets; not sure about their licenses or distribution rights
+sprites/circle/*
+sprites/hexagon/*
+sprites/square/*
+sprites/triangle/*
+sprites/t-pose/*
+sprites/tile/*
+sprites/misc/*
+sprites/isometric/*

@@ -1,0 +1,60 @@
+inherit_from: .rubocop_todo.yml
+
+AllCops:
+  DisabledByDefault: true
+  # note: we want to keep the target ruby version as something that fits the mruby version we have
+  # not sure what it exactly maps to in DR 6.0
+  TargetRubyVersion: 3.0.0 
+  Exclude:
+    - 'app/lib/'
+    - 'app/dragon/'
+
+# test configs
+Layout/CommentIndentation:
+  Enabled: true
+  AutoCorrect: true
+
+Layout/ElseAlignment:
+  Enabled: true
+  AutoCorrect: true
+
+Layout/EndAlignment:
+  Enabled: true
+  EnforcedStyleAlignment: keyword
+  AutoCorrect: true
+
+Layout/IndentationConsistency:
+  Enabled: true
+  EnforcedStyle: normal
+
+Layout/IndentationWidth:
+  Enabled: true
+
+Layout/LeadingCommentSpace:
+  Enabled: true
+
+Style/StringLiterals:
+  Enabled: true
+  EnforcedStyle: single_quotes
+
+Layout/IndentationStyle:
+  Enabled: true
+
+Layout/TrailingEmptyLines:
+  Enabled: true
+
+Layout/TrailingWhitespace:
+  Enabled: true
+
+Layout/LineLength:
+  Max: 200
+
+# Metric default values seem to go for some horrible 'clean code' values...
+Metrics/AbcSize:
+  Max: 60
+
+Metrics/MethodLength:
+  Max: 60 # 
+
+Naming/MethodParameterName:
+  Enabled: false
