@@ -90,7 +90,6 @@ class LevelLoader
     end
 
     def create_ball(data)
-      puts "creating ballz"
       { x: data[:x], y: data[:y], vx: 0.0, vy: 0.0, av: 0.0, radius: 11.0,
         mass: 1.0, swing_state: :waiting_for_swing }
     end

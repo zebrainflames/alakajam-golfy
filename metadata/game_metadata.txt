@@ -1,8 +1,8 @@
 # Remove the pound sign and leading space for the properties below before publishing your game.
-devid=ZebraIf
-devtitle=ZebraIf
-gameid=alakajam-21
-gametitle=untitled-gravity-golfing-game-for-alakajam-21
+devid=ZebraIF
+devtitle=ZebraIF
+gameid=gravity-swing
+gametitle=Gravity Swing
 version=0.1
 icon=metadata/icon.png
 

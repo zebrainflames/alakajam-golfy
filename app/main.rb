@@ -5,7 +5,7 @@ require_relative 'gameplay'
 require_relative 'intro'
 require_relative 'options_menu'
 require_relative 'outro'
-
+require_relative 'palettes'
 
 def init_scenes(args)
   @reload_needed = false
@@ -33,18 +33,22 @@ end
 
 # @params args [GTK::Args]
 def tick(args)
+  # straight from DR docs: https://docs.dragonruby.org/static/docs.html#----consider-adding-pause-when-game-is-in-background
+  if (!args.inputs.keyboard.has_focus && args.gtk.production && Kernel.tick_count != 0)
+    args.outputs.background_color = BACKGROUND_COLOR
+    args.outputs.labels << { x: 640,
+                             y: 360,
+                             text: "Game Paused (click to resume).",
+                             alignment_enum: 1,
+                             r: 255, g: 255, b: 255 }
+    return
+  end
+
   if need_reload?
     puts 'Reloading scenes...'
     init_scenes(args)
   end
 
-  unless args.state.settings
-    args.state.settings = {
-      volume: 0.8,
-      fullscreen: false
-    }
-  end
   args.state&.current_scene&.tick(args)
 end
 
-puts 'main.rb loaded'
