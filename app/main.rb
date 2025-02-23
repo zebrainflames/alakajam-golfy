@@ -1,16 +1,15 @@
 # frozen-string-literal: true
 
+require_relative 'audio_bus'
 require_relative 'gameplay'
 require_relative 'options_menu'
-require_relative 'planets'
 
 def init_scenes(args)
   @reload_needed = false
   args.state.scenes = {}
   args.state.scenes[:gameplay] = GAMEPLAY_SCENE
   args.state.scenes[:options] = OPTIONS_MENU_SCENE
-  args.state.scenes[:planets] = PLANETS_SCENE
-  args.state.current_scene_id = :planets
+  args.state.current_scene_id = :gameplay
   args.state.current_scene = args.state.scenes[args.state.current_scene_id]
 end
 

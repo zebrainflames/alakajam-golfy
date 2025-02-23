@@ -2,6 +2,26 @@
 
 GRAVITY_SCALE = 2.7 # this is a magic scaling number to tune gravity strength and thus game feel
 
+def predict_trajectory(planets, dynamic_body, args, predict_steps = 160)
+  points = []
+  sim_body = dynamic_body.dup
+
+  dx, dy = swing_direction(sim_body, args)
+  sim_body.vx = dx
+  sim_body.vy = dy
+
+  dt = 1.0 / 60.0
+
+  predict_steps.times do
+    apply_gravity(planets, sim_body, dt)
+    sim_body.x += sim_body.vx * dt
+    sim_body.y += sim_body.vy * dt
+    points << { x: sim_body.x, y: sim_body.y }
+  end
+
+  points
+end
+
 def swing_direction(dynamic_body, args)
   drag_x = dynamic_body.swing_start_x - args.inputs.mouse.x
   drag_y = dynamic_body.swing_start_y - args.inputs.mouse.y
