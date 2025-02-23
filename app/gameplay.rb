@@ -60,17 +60,24 @@ FLAG_SPRITE = {
 class GameplayScene < Scene
   attr_accessor :planets, :golf_ball
 
+  LevelAmount = 5
+
   def initialize(args)
     super
 
     @currrent_level = 0
+    @total_strokes = 0
+    @strokes = 0
     load_level()
   end
 
   def load_level(number = nil)
     @level_won = false
+    @level_won_sound_played = false
+    @total_strokes += @strokes
     @strokes = 0
     @currrent_level += 1
+    return if @currrent_level > LevelAmount
     @currrent_level = number if number != nil
     new_level_data = LevelLoader.load_level(@currrent_level)
   
@@ -87,26 +94,49 @@ class GameplayScene < Scene
     @golf_ball.x < 0 || @golf_ball.x > args.grid.w || @golf_ball.y < 0 || @golf_ball.y > args.grid.h
   end
 
+  def ticks_since_last_collision
+    t = Kernel.tick_count
+    @last_collision_tick ||= 0
+    delta = t - @last_collision_tick
+    @last_collision_tick = t
+    delta
+  end
+
+  def ball_moving?(ball)
+    (ball.vx.abs > 5 || ball.vy.abs > 5) && ticks_since_last_collision > 30
+  end
+
   def update(args)
     if @level_won
+      if @currrent_level > LevelAmount
+        args.state.total_strokes = @total_strokes
+        switch_scene(args, :outro)
+        return
+      end
+
       if args.inputs.keyboard.key_down.space
-        load_level(args)
+        load_level
       end
 
       return
     end
 
     player_input(args)
-    physics_update(@planets, @golf_ball) if can_update_physics?
+    ball_bounced = physics_update(@planets, @golf_ball) if can_update_physics?
+
+    
+    args.outputs.sounds << 'sounds/thud_new.wav' if ball_bounced && ball_moving?(@golf_ball)
 
     if ball_out_of_bounds?(args)
-      # TODO: play sound cue
-      # todo: display some sort of particle fx at pont of impact
+      # TODO: display some sort of particle fx at pont of impact
       reset_planets
+      args.outputs.sounds << 'sounds/boom.wav'
     end
 
     if ball_collides_with_flag?
       @level_won = true
+      args.outputs.sounds << 'sounds/level_clear.wav' unless @level_won_sound_played
+      @level_won_sound_played = true
     end
   end
 
@@ -115,11 +145,15 @@ class GameplayScene < Scene
     #args.outputs.labels << [args.grid.w / 2.0, 700, 'Physics testing', 5, 1, 200, 200, 200]
     if @level_won
       args.outputs.labels << [args.grid.w / 2.0, 700, "Level complete in #{@strokes} strokes.", 5, 1, 200, 200, 200]
-      args.outputs.labels << [args.grid.w / 2.0, 650, 'Press "SPACE" to load next level.', 5, 1, 200, 200, 200]
+      args.outputs.labels << [args.grid.w / 2.0, 650, 'Press "SPACE" for the next level.', 5, 1, 200, 200, 200]
     end
 
     args.outputs.labels << [20.from_left, 20.from_top, "Strokes: #{@strokes}", 5, 4, 200,
                             200, 200] unless @level_won
+    # draw a line from ball to mouse cursor if player is dragging
+    if @golf_ball.swing_state == :swinging
+      render_trajectory_projection(args)
+    end
 
     args.outputs.sprites << @planets.map do |planet|
       case planet[:type]
@@ -135,11 +169,6 @@ class GameplayScene < Scene
     args.outputs.sprites << @golf_ball.merge(BALL_SPRITE)
 
     args.outputs.sprites << @flag.merge(FLAG_SPRITE)
-
-    # draw a line from ball to mouse cursor if player is dragging
-    if @golf_ball.swing_state == :swinging
-      render_trajectory_projection(args)
-    end
   end
 
   def reset_planets
@@ -207,18 +236,8 @@ class GameplayScene < Scene
         @golf_ball.swing_state = :flying
         swing_ball(@golf_ball, args)
         @strokes += 1
-        # TODO: play sound cue
+        args.outputs.sounds << 'sounds/swing_hit.wav'
       end
-    end
-
-    if args.inputs.mouse.down
-      puts "Dragging..."
-      #if @golf_ball.swing_state == :waiting_for_swing
-      #  @golf_ball.swing_state = :swinging
-      #  @golf_ball.swing_end_x = args.inputs.mouse.x
-      #  @golf_ball.swing_end_y = args.inputs.mouse.y
-      # TODO: play sound cue
-      #end
     end
   end
 end

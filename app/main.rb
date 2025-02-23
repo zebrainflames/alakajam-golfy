@@ -2,14 +2,19 @@
 
 require_relative 'audio_bus'
 require_relative 'gameplay'
+require_relative 'intro'
 require_relative 'options_menu'
+require_relative 'outro'
+
 
 def init_scenes(args)
   @reload_needed = false
   args.state.scenes = {}
   args.state.scenes[:gameplay] = GAMEPLAY_SCENE
   args.state.scenes[:options] = OPTIONS_MENU_SCENE
-  args.state.current_scene_id = :gameplay
+  args.state.scenes[:outro] = OUTRO_SCENE
+  args.state.scenes[:intro] = INTRO_SCENE
+  args.state.current_scene_id = :intro
   args.state.current_scene = args.state.scenes[args.state.current_scene_id]
 end
 
@@ -39,12 +44,6 @@ def tick(args)
       fullscreen: false
     }
   end
-
-  # testing: changing scenes manually
-  switch_scene(args, :gameplay) if args.inputs.keyboard.key_down.one
-  switch_scene(args, :options) if args.inputs.keyboard.key_down.two
-  switch_scene(args, :planets) if args.inputs.keyboard.key_down.three
-
   args.state&.current_scene&.tick(args)
 end
 

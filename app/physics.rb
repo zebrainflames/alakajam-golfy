@@ -107,9 +107,10 @@ def physics_update(planets, dynamic_body)
     bounce_friction = 0.9
     dynamic_body.vx *= bounce_friction
     dynamic_body.vy *= bounce_friction
-    # also add some angular velocity in the direction of movement to make it look like we're simulating
-    # rolling physics
 
+
+    # TODO: also add some angular velocity in the direction of movement to make it look like we're simulating
+    # rolling physics
   end
 
   # TODO: emit signal for collision sound effect and ball state changes here instead of setting state directly
@@ -129,4 +130,6 @@ def physics_update(planets, dynamic_body)
 
   dynamic_body.x += dynamic_body.vx * dt
   dynamic_body.y += dynamic_body.vy * dt
+
+  return bounced # eww...
 end
