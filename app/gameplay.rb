@@ -1,5 +1,6 @@
 # frozen-string-literal: true
 
+require_relative 'level_loader.rb'
 require_relative 'scene'
 require_relative 'palettes'
 require_relative 'physics'
@@ -24,8 +25,8 @@ PLANET_MED_ROCK = {
 
 PLANET_BIG_ROCK = {
   path: 'sprites/jam_assets/planet_b_192.png',
-  w: 128,
-  h: 128,
+  w: 192,
+  h: 192,
   anchor_x: 0.5,
   anchor_y: 0.5
 }.freeze
@@ -62,13 +63,24 @@ class GameplayScene < Scene
   def initialize(args)
     super
 
+    @currrent_level = 0
     load_level()
-    reset_planets(args)
   end
 
-  def load_level
+  def load_level(number = nil)
     @level_won = false
     @strokes = 0
+    @currrent_level += 1
+    @currrent_level = number if number != nil
+    new_level_data = LevelLoader.load_level(@currrent_level)
+  
+    if new_level_data
+      @level_data = new_level_data
+      reset_planets
+    else
+      puts "ERROR: could not load level data"
+      nil
+    end
   end
 
   def ball_out_of_bounds?(args)
@@ -77,6 +89,10 @@ class GameplayScene < Scene
 
   def update(args)
     if @level_won
+      if args.inputs.keyboard.key_down.space
+        load_level(args)
+      end
+
       return
     end
 
@@ -86,8 +102,7 @@ class GameplayScene < Scene
     if ball_out_of_bounds?(args)
       # TODO: play sound cue
       # todo: display some sort of particle fx at pont of impact
-      # todo: increase stroke counter
-      reset_planets(args)
+      reset_planets
     end
 
     if ball_collides_with_flag?
@@ -106,7 +121,16 @@ class GameplayScene < Scene
     args.outputs.labels << [20.from_left, 20.from_top, "Strokes: #{@strokes}", 5, 4, 200,
                             200, 200] unless @level_won
 
-    args.outputs.sprites << @planets.map { |planet| planet.merge(PLANET_MED_ROCK) }
+    args.outputs.sprites << @planets.map do |planet|
+      case planet[:type]
+      when :medium_rock
+        planet.merge(PLANET_MED_ROCK)
+      when :small_rock
+        planet.merge(PLANET_SMALL_ROCK)
+      when :big_rock
+        planet.merge(PLANET_BIG_ROCK)
+      end
+    end
 
     args.outputs.sprites << @golf_ball.merge(BALL_SPRITE)
 
@@ -118,13 +142,12 @@ class GameplayScene < Scene
     end
   end
 
-  def reset_planets(args)
-    @planets = []
-    @planets << create_med_planet(args.grid.w / 2.0, args.grid.h / 2.0, :rock)
-    @golf_ball = { x: args.grid.w / 2.0, y: args.grid.h / 2.0 + 64 + 8, vx: 0.0, vy: 0.0, av: 0.0, radius: 11.0,
-                   mass: 1.0, swing_state: :waiting_for_swing }
-    @ball_flying_for = 0
-    @flag = { x: args.grid.w / 2.0, y: args.grid.h / 2.0 - 64 - 8, radius: 8.0, angle: 180 }
+  def reset_planets
+    puts "Resetting level data from #{@level_data.inspect}"
+    @planets = @level_data[:planets].dup
+    @golf_ball = @level_data[:ball].dup
+    puts "Ball is now at #{@golf_ball.inspect}"
+    @flag = @level_data[:flag].dup
   end
 
   private 
@@ -134,18 +157,6 @@ class GameplayScene < Scene
     dy = @golf_ball.y - @flag[:y]
     distance = Math.sqrt(dx**2 + dy**2)
     distance < @golf_ball.radius + @flag.radius
-  end
-
-  def create_med_planet(x, y, type = :rock)
-    { x: x, y: y, mass: 120_000.0, radius: 64.0, type: type }
-  end
-
-  def create_small_planet(x, y, type = :rock)
-    { x: x, y: y, mass: 45_000.0, radius: 32.0, type: type }
-  end
-
-  def create_big_planet(x, y, type = :rock)
-    { x: x, y: y, mass: 240_000.0, radius: 96.0, type: type }
   end
 
   def render_trajectory_projection(args)
